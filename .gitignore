@@ -95,6 +95,8 @@ Assets/Resources.meta
 #------------------------
 Assets/cineastapi.json
 Assets/cineastapi.json.meta
+Assets/v3c-cineastapi.json
+Assets/v3c-cineastapi.json.meta
 Assets/credentials.json
 Assets/credentials.json.meta
 Assets/dresapi.json
@@ -102,3 +104,6 @@ Assets/dresapi.json.meta
 Assets/vitrivr-vr.json
 Assets/vitrivr-vr.json.meta
 session_logs/
+
+#Visual Studio
+.vsconfig/
