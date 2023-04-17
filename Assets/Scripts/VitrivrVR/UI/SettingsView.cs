@@ -33,5 +33,10 @@ namespace VitrivrVR.UI
     {
       QueryController.Instance.SelectCineastClient(cineastIndex);
     }
+
+    public void SelectResultVisualization(int resultVisualizationIndex) 
+    {
+        Debug.Log(resultVisualizationIndex);
+    }
   }
 }

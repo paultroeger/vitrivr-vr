@@ -1,0 +1,8 @@
+{
+  "name": "V3C",
+  "cineastHost": "http://10.34.58.12:8080",
+  "mediaHost": "http://10.34.58.13",
+  "thumbnailPath": "v3c/thumbnails/:o/:s",
+  "thumbnailExtension": ".jpg",
+  "mediaPath": "v3c/video/:o.mp4"
+}
