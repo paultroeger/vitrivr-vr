@@ -36,7 +36,9 @@ namespace VitrivrVR.UI
 
     public void SelectResultVisualization(int resultVisualizationIndex) 
     {
-        Debug.Log(resultVisualizationIndex);
+      Debug.Log(resultVisualizationIndex);
+      //var queryDisplay = QueryController.Instance.GetActiveQueryDisplay();
+      //Debug.Log(queryDisplay);
     }
   }
 }

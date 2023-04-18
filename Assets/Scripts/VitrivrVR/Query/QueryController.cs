@@ -408,5 +408,6 @@ namespace VitrivrVR.Query
       queryFocusEvent.Invoke(CurrentQuery, queryIndex);
       CurrentQuery = queryIndex;
     }
+
   }
 }

@@ -391,6 +391,7 @@ MonoBehaviour:
   queryDisplayPrefabs:
   - {fileID: 5978004481995343909, guid: 33bd32de084a9446c8c490fa1c5bf8b1, type: 3}
   - {fileID: 779218035067865778, guid: 6b03aa7100daf49fd82d30e3484557ff, type: 3}
+  - {fileID: 1701749866014209842, guid: ac86986f8c3a1b14493e65ff0ae01a22, type: 3}
 --- !u!114 &1436555782387458575
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -998,7 +999,7 @@ PrefabInstance:
     - target: {fileID: 1471651728229263840, guid: 06ec2d26841fe4741be76d6283541067,
         type: 3}
       propertyPath: m_text
-      value: Segment View
+      value: Cylinder Segment View
       objectReference: {fileID: 0}
     - target: {fileID: 3915206559235563388, guid: 06ec2d26841fe4741be76d6283541067,
         type: 3}
@@ -1008,17 +1009,22 @@ PrefabInstance:
     - target: {fileID: 6556586203183642546, guid: 06ec2d26841fe4741be76d6283541067,
         type: 3}
       propertyPath: m_Options.m_Options.Array.size
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6556586203183642546, guid: 06ec2d26841fe4741be76d6283541067,
         type: 3}
       propertyPath: m_Options.m_Options.Array.data[0].m_Text
-      value: Segment View
+      value: Cylinder Segment View
       objectReference: {fileID: 0}
     - target: {fileID: 6556586203183642546, guid: 06ec2d26841fe4741be76d6283541067,
         type: 3}
       propertyPath: m_Options.m_Options.Array.data[1].m_Text
-      value: Object View
+      value: Cylinder Object View
+      objectReference: {fileID: 0}
+    - target: {fileID: 6556586203183642546, guid: 06ec2d26841fe4741be76d6283541067,
+        type: 3}
+      propertyPath: m_Options.m_Options.Array.data[2].m_Text
+      value: Advanced Grid
       objectReference: {fileID: 0}
     - target: {fileID: 6556586203183642546, guid: 06ec2d26841fe4741be76d6283541067,
         type: 3}
@@ -1093,7 +1099,7 @@ PrefabInstance:
     - target: {fileID: 7254197880080202635, guid: 06ec2d26841fe4741be76d6283541067,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 140
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 7254197880080202635, guid: 06ec2d26841fe4741be76d6283541067,
         type: 3}
