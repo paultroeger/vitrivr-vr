@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using Vitrivr.UnityInterface.CineastApi.Model.Data;
 using VitrivrVR.Config;
 using VitrivrVR.Logging;
@@ -18,8 +19,8 @@ namespace VitrivrVR.Query.Display
     public class AdvancedGridQueryDisplay : QueryDisplay
     {
 
-        public override int NumberOfResults => -6;
-
+      public override int NumberOfResults => -6;
+      
       protected override void Initialize()
       {
         var fusionResults = QueryData.GetMeanFusionResults();
@@ -30,8 +31,29 @@ namespace VitrivrVR.Query.Display
             _results = new List<ScoredSegment>();
         }
 
-        
-        Debug.Log(_results.Count);
+        gameObject.AddComponent<Canvas>();
+
+        Canvas canvas = GetComponent<Canvas>();
+        canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(150, 200);
+        //canvas.GetComponentInChildren<Image>().color = Color.blue;
+
+        // Text
+        GameObject myText = new GameObject();
+        myText.transform.parent = canvas.transform;
+        myText.name = "wibble";
+
+        Text text = myText.AddComponent<Text>();
+        text.text = "wobble";
+        text.color = Color.red;
+        text.fontSize = 100;
+
+        // Text position
+        RectTransform rectTransform = text.GetComponent<RectTransform>();
+        rectTransform.localPosition = new Vector3(0, 0, 0);
+        rectTransform.sizeDelta = new Vector2(400, 200);
+
+      Debug.Log(_results.Count);
+        Debug.Log(GetComponent<Canvas>());
       }
     }
 }
