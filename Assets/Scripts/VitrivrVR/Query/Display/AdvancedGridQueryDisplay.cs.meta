@@ -3,7 +3,10 @@ guid: afaf72b26c147364899c4b815c40cc4f
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - mediaItemDisplay: {instanceID: 0}
+  - textMeshProPrefab: {fileID: 5915808629336092722, guid: c21f1ea935944854ca2952ddc0cab8b5,
+      type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

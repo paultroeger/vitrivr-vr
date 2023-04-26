@@ -22,10 +22,14 @@ namespace VitrivrVR.Query.Display
 
     public override int NumberOfResults => _nResults;
     public MediaItemDisplay mediaItemDisplay;
+    public GameObject textMeshProPrefab;
 
     private int _nResults;
     private readonly List<MediaItemDisplay> _mediaDisplays = new();
+    private readonly List<TextMeshProUGUI> _metaTexts = new();
 
+    private int columns;
+    private int rows;
 
     protected override void Initialize()
     {
@@ -39,35 +43,11 @@ namespace VitrivrVR.Query.Display
 
       _nResults = _results.Count;
 
+      columns = 4;
+      rows = (_nResults / columns) + 1;
 
-      /*Canvas canvas = gameObject.AddComponent<Canvas>();
-
-      gameObject.AddComponent<CanvasScaler>();
-      gameObject.AddComponent<GraphicRaycaster>();
-      GameObject panel = new GameObject("Panel");
-      panel.AddComponent<CanvasRenderer>();
-      panel.transform.SetParent(gameObject.transform, false);
-
-      Image image = panel.AddComponent<Image>();
-      image.color = Color.gray;
-      
-      // Text
-      GameObject myText = new GameObject();
-      myText.transform.parent = panel.transform;
-      myText.name = "wibble";
-
-      Text text = myText.AddComponent<Text>();
-      text.text = "wobble";
-      text.color = Color.red;
-      text.fontSize = 100;
-      
-      // Text position
-      RectTransform rectTransform = text.GetComponent<RectTransform>();
-      rectTransform.localPosition = new Vector3(0, 0, 0);
-      rectTransform.sizeDelta = new Vector2(400, 200);
-      */
-
-      gameObject.transform.position = new Vector3(0, 1.2f, 0.5f);
+      //set initial position
+      gameObject.transform.position = new Vector3(0, 1.5f, 1.3f);
 
       Scrollbar scrollbar = gameObject.GetComponentInChildren<Scrollbar>();
       Debug.Log(scrollbar.size);
@@ -84,7 +64,12 @@ namespace VitrivrVR.Query.Display
      
       if (gridPanel != null)
       {
-        CreateResultObject(_results[0], gridPanel.gameObject);
+
+        for (int i = 0; i < 16; i++)
+        {
+          CreateResultObject(_results[i], gridPanel.gameObject);
+        }
+        
 
       }
 
@@ -93,8 +78,8 @@ namespace VitrivrVR.Query.Display
     private void CreateResultObject(ScoredSegment result, GameObject panel)
     {
       // Determine position
-      //var index = _mediaDisplays.Count;
-      //var (position, rotation) = GetResultLocalPosRot(index);
+      var index = _mediaDisplays.Count;
+      var (position, positionText) = GetResultLocalPosRot(index);
 
       var itemDisplay = Instantiate(mediaItemDisplay, Vector3.zero, Quaternion.identity, transform);
 
@@ -103,15 +88,31 @@ namespace VitrivrVR.Query.Display
       var transform2 = itemDisplay.transform;
 
       transform2.SetParent(panel.transform);
-      transform2.localPosition = new Vector3(0, 0, 0);
+      transform2.localPosition = position;
 
-      RectTransform rectTransform = itemDisplay.GetComponent<RectTransform>();
-      rectTransform.anchoredPosition = new Vector3(0, 0, 0);
-      
+      //RectTransform rectTransform = itemDisplay.GetComponent<RectTransform>();
+      //rectTransform.anchoredPosition = new Vector3(0, 0, 0);
+
 
       //transform2.localRotation = rotation;
       // Adjust size
-      transform2.localScale *= 0.5f;
+      Debug.Log(transform2.localScale);
+
+      transform2.localScale *= 0.1f;
+
+      //Text
+
+      GameObject metaText = Instantiate(textMeshProPrefab, panel.transform);
+
+      metaText.transform.localPosition = positionText;
+
+      TextMeshProUGUI metaTextUGUI = metaText.GetComponentInChildren<TextMeshProUGUI>();
+      metaTextUGUI.text = "Index " + index;
+      metaTextUGUI.fontSize = 24;
+
+      //RectTransform newTextTransform = metaText.GetComponentInChildren<RectTransform>();
+      //newTextTransform.anchoredPosition = new Vector3 (0,0,0);
+      //newTextTransform.sizeDelta = new Vector2(550, 50);
 
       // Add to media displays list
       _mediaDisplays.Add(itemDisplay);
@@ -119,6 +120,22 @@ namespace VitrivrVR.Query.Display
       itemDisplay.Initialize(result);
 
       itemDisplay.gameObject.SetActive(true);
+    }
+
+    private (Vector3 position, Vector3 positionText) GetResultLocalPosRot(int index, float distanceDelta = 0)
+    {
+
+      var posX = -800;
+      var posY = 500;
+
+      var column = index % columns;
+      var row = index / columns;
+      //var multiplier = resultSize + padding;
+      var position = new Vector3(column * 300 + posX, -row * 300 + posY, -0.1f);
+
+      var positionText = new Vector3(column * 300 + posX, -row * 300 - 120 + posY, -0.1f);
+
+      return (position, positionText);
     }
   }
 }
