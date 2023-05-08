@@ -26,6 +26,8 @@ namespace VitrivrVR.Query.Display
     public MediaItemDisplay mediaItemDisplay;
     public GameObject textMeshProPrefab;
 
+    public InputAction moveScrollbar;
+
     private List<ScoredSegment> _results;
     private int _nResults;
     private readonly List<MediaItemDisplay> _mediaDisplays = new();
@@ -101,6 +103,16 @@ namespace VitrivrVR.Query.Display
 
       }
 
+    }
+
+    private void OnEnable()
+    {
+      moveScrollbar.Enable();
+    }
+
+    private void OnDisable()
+    {
+      moveScrollbar.Disable();
     }
 
     private void updateResultPosition(float val)
@@ -187,9 +199,11 @@ namespace VitrivrVR.Query.Display
 
         updateResultPosition(updatePos);
       }
+
+      //Debug.Log(moveScrollbar.ReadValue<Vector2>());
     }
 
-    private async void CreateResultObject(GameObject panel, int index, int rowShift = 0)
+    private void CreateResultObject(GameObject panel, int index, int rowShift = 0)
     {
 
       var resultIndex = columns * rowShift + index;
@@ -210,7 +224,7 @@ namespace VitrivrVR.Query.Display
 
       //transform2.localRotation = rotation;
       // Adjust size
-      Debug.Log(transform2.localScale);
+      //Debug.Log(transform2.localScale);
 
       transform2.localScale = new Vector3(0.4f, 0.4f, 0.1f);
 
@@ -219,10 +233,12 @@ namespace VitrivrVR.Query.Display
       GameObject metaText = Instantiate(textMeshProPrefab, panel.transform);
 
       metaText.transform.localPosition = positionText;
+      metaText.transform.localScale = new Vector3(1f, 1f, 1f);
 
       TextMeshProUGUI metaTextUGUI = metaText.GetComponentInChildren<TextMeshProUGUI>();
-      metaTextUGUI.text = await createMetaDataToDisplay(resultIndex, _results[resultIndex]);
+      createMetaDataToDisplay(metaTextUGUI, resultIndex, _results[resultIndex]);
       metaTextUGUI.fontSize = 30;
+      metaTextUGUI.alignment = TextAlignmentOptions.Center;
 
       _metaTexts[index] = metaText;
 
@@ -241,13 +257,15 @@ namespace VitrivrVR.Query.Display
     }
 
 
-    private async Task<string> createMetaDataToDisplay(int index, ScoredSegment result)
+    private async void createMetaDataToDisplay(TextMeshProUGUI metaTextUGUI, int index, ScoredSegment result)
     {
       var text = "Index " + index;
-      text += "\nScore: " + result.score;
+      text += ", Score: " + result.score.ToString("##0.###");
 
+     
+      //var tags = await result.segment.GetTags();
+    
       /*
-      List<Tag> tags = await result.segment.GetTags();
       var tagString = "No Tags!";
       
       if (tags.Count != 0) {
@@ -260,10 +278,13 @@ namespace VitrivrVR.Query.Display
 
       text += "\nTags:" + tagString;
       */
-      //text += "\nStartTime: " + result.segment.GetStart().Result + " EndTime: " + result.segment.GetEnd().Result;
-      //text += "\nDuration: " + (result.segment.GetEnd().Result - result.segment.GetStart().Result);
-      
-      return text;
+
+      var startAbsolute = await result.segment.GetAbsoluteStart();
+      var endAbsolute = await result.segment.GetAbsoluteEnd();
+
+      text += "\n" + startAbsolute.ToString("####0.##") + "s - " + endAbsolute.ToString("####0.##");
+      text += "s (" + (endAbsolute - startAbsolute).ToString("####0.##") + "s)";
+      metaTextUGUI.text = text;
     }
 
     private void destroyResultObject(int index)
@@ -284,9 +305,9 @@ namespace VitrivrVR.Query.Display
       var column = index % columns;
       var row = index / columns;
       //var multiplier = resultSize + padding;
-      var position = new Vector3(column * 500 + posX, -row  * 420 + posY, -0.05f);
+      var position = new Vector3(column * 500 + posX, -row  * 420 + posY, -0.06f);
 
-      var positionText = new Vector3(column * 500 - 50 + posX, -row * 420 - 200 + posY, -0.05f);
+      var positionText = new Vector3(column * 500 + posX, -row * 420 - 200 + posY, -0.04f);
 
       return (position, positionText);
     }

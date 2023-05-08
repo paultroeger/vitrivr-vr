@@ -52,6 +52,23 @@ MonoBehaviour:
     type: 3}
   textMeshProPrefab: {fileID: 5915808629336092722, guid: c21f1ea935944854ca2952ddc0cab8b5,
     type: 3}
+  moveScrollbar:
+    m_Name: Move Scrollbar
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 068cb20c-25fb-4987-96f5-98f9a659126c
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 177d174e-c35f-4e31-9f34-5e4161e57969
+      m_Path: <XRController>{LeftHand}/primary2DAxis
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Move Scrollbar
+      m_Flags: 0
+    m_Flags: 0
 --- !u!114 &4900391165152053964
 MonoBehaviour:
   m_ObjectHideFlags: 0
