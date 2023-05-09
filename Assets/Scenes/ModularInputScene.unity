@@ -2611,6 +2611,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Query Settings View
       objectReference: {fileID: 0}
+    - target: {fileID: 5350470879762543664, guid: a064c784b84570846be74dc3380b0743,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5350470879762543665, guid: a064c784b84570846be74dc3380b0743,
+        type: 3}
+      propertyPath: queryDisplayPrefabs.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5350470879762543665, guid: a064c784b84570846be74dc3380b0743,
+        type: 3}
+      propertyPath: queryDisplayPrefabs.Array.data[3]
+      value: 
+      objectReference: {fileID: 4454271214942091010, guid: dc08285580ede894883b4994adaf8246,
+        type: 3}
     - target: {fileID: 5350470879762543667, guid: a064c784b84570846be74dc3380b0743,
         type: 3}
       propertyPath: m_Pivot.x

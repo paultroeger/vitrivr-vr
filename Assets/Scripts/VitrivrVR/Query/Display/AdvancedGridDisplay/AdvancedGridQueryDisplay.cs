@@ -85,7 +85,7 @@ namespace VitrivrVR.Query.Display
       AdvancedGridScrollbar.size = rowsVisible / rows;
       AdvancedGridScrollbar.onValueChanged.AddListener((float val) => _updateQueue.Enqueue(val));
       scrollbarStepSize = 1.0f / ((float) (rows - rowsVisible));
-      Debug.Log("STEP SIZE:" + scrollbarStepSize + ":" + rows);
+      //Debug.Log("STEP SIZE:" + scrollbarStepSize + ":" + rows);
       //Debug.Log(AdvancedGridScrollbar.size);
 
       //get Text
