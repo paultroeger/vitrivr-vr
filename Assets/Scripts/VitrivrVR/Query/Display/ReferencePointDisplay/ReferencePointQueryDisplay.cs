@@ -1,4 +1,4 @@
-using Org.Vitrivr.CineastApi.Model;
+using Org.Vitrivr.CineastApi.Model; 
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,7 +86,7 @@ namespace VitrivrVR.Query.Display
       button.transform.Rotate(new Vector3(-90, 0, 0));
 
       button.GetComponentInChildren<TextMeshProUGUI>().text = "Hello!";
-      button.onClick.AddListener(selectItemAsReferencePoint);
+      button.onClick.AddListener(() => selectItemAsReferencePoint(index));
 
       // Add to media displays list
       //_mediaDisplays[index] = itemDisplay;
@@ -104,9 +104,27 @@ namespace VitrivrVR.Query.Display
       return (new Vector3(0.0f, 0.0f, -500.0f), new Vector3(0.0f, -80.0f, -500.0f + 175));
     }
 
-    private void selectItemAsReferencePoint()
+    private void selectItemAsReferencePoint(int index)
     {
-      Debug.Log("Pressed the Button!");
+      Debug.Log("Pressed the Button! " + index);
+
+      fetchSimilarityScores(index);
+      
+    }
+
+    private void fetchSimilarityScores(int index)
+    {
+
+      List<String> segmentIds = _results.Select(x => x.segment.Id).ToList();
+
+
+      var itemId = _results[index].segment.Id;
+
+      List<QueryTerm> terms = new List<QueryTerm>();
+      QueryConfig config = new QueryConfig(relevantSegmentIds: segmentIds);
+
+      SimilarityQuery similarityQuery = new SimilarityQuery(terms, config);
+      Task<QueryResponse> result = QueryController.Instance.CurrentClient.ExecuteQuery(similarityQuery, 200);
     }
 
   }

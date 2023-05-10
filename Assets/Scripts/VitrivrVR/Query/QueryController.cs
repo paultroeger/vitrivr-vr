@@ -72,7 +72,7 @@ namespace VitrivrVR.Query
 
     private int _currentCineastClient;
 
-    private CineastClient CurrentClient => _cineastClients[_currentCineastClient];
+    public CineastClient CurrentClient => _cineastClients[_currentCineastClient];
 
     private void Awake()
     {
