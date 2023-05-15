@@ -278,23 +278,6 @@ namespace VitrivrVR.Query.Display
       var text = "Index " + index;
       text += ", Score: " + result.score.ToString("##0.###");
 
-     
-      //var tags = await result.segment.GetTags();
-    
-      /*
-      var tagString = "No Tags!";
-      
-      if (tags.Count != 0) {
-        tagString = "";
-      }
-      for (int i = 0; i < tags.Count; i++)
-      {
-        tagString += " " + tags[i].Name;
-      }
-
-      text += "\nTags:" + tagString;
-      */
-
       var startAbsolute = await result.segment.GetAbsoluteStart();
       var endAbsolute = await result.segment.GetAbsoluteEnd();
 
