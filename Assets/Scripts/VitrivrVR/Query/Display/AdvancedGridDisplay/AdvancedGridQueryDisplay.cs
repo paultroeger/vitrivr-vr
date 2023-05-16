@@ -37,9 +37,9 @@ namespace VitrivrVR.Query.Display
 
     private readonly Queue<float> _updateQueue = new();
 
-    private int columns;
+    private int columns = 6;
     private int rows;
-    private int rowsVisible;
+    private int rowsVisible = 4;
     private float prevScrollbarValue = 0.0f;
 
     private float moveScrollbarValue = 0.0f;
@@ -63,9 +63,9 @@ namespace VitrivrVR.Query.Display
       //_nResults = 50;
       
 
-      columns = 6;
+      
       rows = (int)Math.Ceiling((double)_nResults / (double)columns);
-      rowsVisible = 4;
+     
 
       for (int i = 0; i < columns * rowsVisible; i++)
       {
