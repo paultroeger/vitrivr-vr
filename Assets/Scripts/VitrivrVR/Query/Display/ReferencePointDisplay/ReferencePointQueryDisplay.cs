@@ -48,7 +48,7 @@ namespace VitrivrVR.Query.Display
     private List<int> _resultIndex = new ();
 
     private Transform controlPanelTransform = null;
-    private Transform resultPanelTransform = null;
+    private Transform resultParentTransform = null;
 
     private Scrollbar ReferencePointScrollbar;
     private float scrollbarStepSize;
@@ -73,6 +73,14 @@ namespace VitrivrVR.Query.Display
       //Debug: set different result size.
       //_nResults = 50;
 
+      //set initial position
+      gameObject.transform.position = new Vector3(0, 0.5f, 1.3f);
+
+      if (_nResults == 0)
+      {
+        return;
+      }
+
       rows = (int)Math.Ceiling((double)_nResults / (double)columns);
 
       //Setup Scrollbar
@@ -87,12 +95,8 @@ namespace VitrivrVR.Query.Display
 
       titleText.text = "Reference Point Display (Displaying: " + _nResults + " Results)";
 
-      resultPanelTransform = gameObject.transform.Find("Canvas").transform.Find("ResultPanel");
-
+      resultParentTransform = transform.Find("ResultParent");
       controlPanelTransform = gameObject.transform.Find("Canvas").transform.Find("ControlPanel");
-
-      //set initial position
-      gameObject.transform.position = new Vector3(0, 0.5f, 1.3f);
 
       for (int i = 0; i < columns * rowsVisible; i++)
       {
@@ -100,7 +104,7 @@ namespace VitrivrVR.Query.Display
         _buttons.Add(null);
         _resultIndex.Add(-1);
 
-        Transform pillar = Instantiate(pillarPrefab, resultPanelTransform).transform.Find("Canvas").transform.Find("ReferencePointPillar");
+        Transform pillar = Instantiate(pillarPrefab, resultParentTransform).transform.Find("Canvas").transform.Find("ReferencePointPillar");
         
         var (position, delta) = GetPillarPosScale(i, 0);
         pillar.localPosition = position;
@@ -113,7 +117,7 @@ namespace VitrivrVR.Query.Display
 
       for (int i = 0; i < 16; i++)
       {
-        CreateResultObject(resultPanelTransform.gameObject, i);
+        CreateResultObject(i);
       }
 
       updateAllObjectPos();
@@ -161,6 +165,11 @@ namespace VitrivrVR.Query.Display
     private void OnDisable()
     {
       moveScrollbar.Disable();
+    }
+
+    private void OnDestroy()
+    {
+      controlPanelTransform.Destroy();
     }
 
     //Update the Results Shown based on scrollbar value.
@@ -227,7 +236,7 @@ namespace VitrivrVR.Query.Display
         }
         else if (startIndex + i < _nResults)
         {
-          CreateResultObject(resultPanelTransform.gameObject, i, rowShift);
+          CreateResultObject(i, rowShift);
         }
         else
         {
@@ -244,23 +253,23 @@ namespace VitrivrVR.Query.Display
       prevScrollbarValue = val;
     }
 
-    private void CreateResultObject(GameObject panel, int index, int rowShift = 0)
+    private void CreateResultObject(int index, int rowShift = 0)
     {
 
       var resultIndex = columns * rowShift + index;
 
       var (position, positionButton) = GetResultLocalPos(index);
 
-      var itemDisplay = Instantiate(mediaItemDisplay, Vector3.zero, Quaternion.identity, transform);
+      var itemDisplay = Instantiate(mediaItemDisplay, Vector3.zero, Quaternion.identity, resultParentTransform);
 
       var transform2 = itemDisplay.transform;
-      transform2.SetParent(panel.transform);
+      transform2.SetParent(resultParentTransform);
       transform2.localPosition = position;
 
       transform2.localScale = new Vector3(0.4f, 0.4f, 0.1f);
 
       //Button
-      GameObject buttonGameObject = Instantiate(buttonPrefab, panel.transform);
+      GameObject buttonGameObject = Instantiate(buttonPrefab, resultParentTransform);
 
       buttonGameObject.transform.localPosition = positionButton;
       buttonGameObject.transform.localScale = new Vector3(1f, 1f, 1f);
@@ -300,11 +309,18 @@ namespace VitrivrVR.Query.Display
 
       float score = 0;
 
-      try { 
-        score = (float) _queryResults.Where(x => x.segment.Id == _results[_resultIndex[index]].segment.Id).ToArray()[0].score;
-        _pillars[index].GetComponent<Image>().color = new Color(0, 0, 255, 0.5f);
+      try {
+
+        if (_queryResults.Count > 0)
+        {
+          score = (float)_queryResults.Where(x => x.segment.Id == _results[_resultIndex[index]].segment.Id).ToArray()[0].score;
+          _pillars[index].GetComponent<Image>().color = new Color(0, 0, 255, 0.5f);
+        }
+
+        
       } catch (Exception e)
       {
+        Debug.Log(e);
         Debug.Log("Error no segment found for Id: " + _results[_resultIndex[index]].segment.Id + " with index: " + index);
         _pillars[index].GetComponent<Image>().color = new Color(255, 0, 0, 0.5f);
       }
@@ -386,7 +402,7 @@ namespace VitrivrVR.Query.Display
       var column = index % columns;
       var row = index / columns;
 
-      var position = new Vector3(column * 650 + posX, -row * 400 + posY, -200 - 600 * score);
+      var position = new Vector3(column * 650 + posX, -row * 400 + posY, -200 - 600 * score - 20);
 
       var positionButton = new Vector3(position.x + 125, position.y -30, position.z - 200);
 
@@ -403,7 +419,7 @@ namespace VitrivrVR.Query.Display
 
       var position = new Vector3(column * 650 + posX, -row * 400 + posY, - 300 * score);
 
-      var delta = new Vector2(200, 1000 * score);
+      var delta = new Vector2(200, 600 * score);
 
       return (position, delta);
     }
@@ -427,7 +443,9 @@ namespace VitrivrVR.Query.Display
 
     private void removeReferencePoint()
     {
+      _queryResults = null;
       DestroyReferenceObject();
+      updateAllObjectPos();
     }
 
     private async void fetchSimilarityScores(int resultIndex)
@@ -435,7 +453,7 @@ namespace VitrivrVR.Query.Display
 
       List<String> segmentIds = _results.Select(x => x.segment.Id).ToList();
 
-      Debug.Log(segmentIds.Count);
+      //Debug.Log(segmentIds.Count);
 
       //List<String> segmentIds = _resultIndex.Select(x => _results[x].segment.Id).ToList();
 
@@ -443,16 +461,16 @@ namespace VitrivrVR.Query.Display
 
       List<QueryTerm> terms = new List<QueryTerm>();
       terms.Add(new QueryTerm(QueryTerm.TypeEnum.ID, itemId, new List<String> { "visualtextcoembedding" }));
-      QueryConfig config = new QueryConfig(relevantSegmentIds: segmentIds);
+      QueryConfig config = new QueryConfig(relevantSegmentIds: segmentIds, maxResults: segmentIds.Count, resultsPerModule: segmentIds.Count);
 
       
       SimilarityQuery similarityQuery = new SimilarityQuery(terms, config);
-      Debug.Log(similarityQuery.ToJson());
+      //Debug.Log(similarityQuery.ToJson());
       QueryResponse queryResponse = await QueryController.Instance.CurrentClient.ExecuteQuery(similarityQuery, segmentIds.Count);
 
       _queryResults = queryResponse.GetMeanFusionResults();
 
-      Debug.Log(_queryResults.Count);
+      //Debug.Log(_queryResults.Count);
       updateAllObjectPos();
     }
 
