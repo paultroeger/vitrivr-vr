@@ -30,9 +30,9 @@ namespace VitrivrVR.Query.Display
 
     private List<ScoredSegment> _results;
     private int _nResults;
-    private readonly List<MediaItemDisplay> _mediaDisplays = new();
-    private readonly List<GameObject> _metaTexts = new();
-    private readonly List<int> _resultIndex = new();
+    private MediaItemDisplay[] _mediaDisplays;
+    private GameObject[] _metaTexts;
+    
     private Transform gridPanelTransform;
 
     private readonly Queue<float> _updateQueue = new();
@@ -60,19 +60,12 @@ namespace VitrivrVR.Query.Display
       _nResults = _results.Count;
 
       //Debug: set different result size.
-      //_nResults = 50;
-      
+      //_nResults = 48;
 
-      
+      _mediaDisplays = new MediaItemDisplay[_nResults];
+      _metaTexts = new GameObject[_nResults];
+
       rows = (int)Math.Ceiling((double)_nResults / (double)columns);
-     
-
-      for (int i = 0; i < columns * rowsVisible; i++)
-      {
-        _mediaDisplays.Add(null);
-        _metaTexts.Add(null);
-        _resultIndex.Add(-1);
-      }
 
       //Debug.Log("Rows: " + rows);
 
@@ -81,7 +74,7 @@ namespace VitrivrVR.Query.Display
 
       //Setup Scrollbar
       AdvancedGridScrollbar = gameObject.GetComponentInChildren<Scrollbar>();
-      AdvancedGridScrollbar.numberOfSteps = rows - rowsVisible + 1;
+      //AdvancedGridScrollbar.numberOfSteps = rows - rowsVisible + 1;
       AdvancedGridScrollbar.size = rowsVisible / rows;
       AdvancedGridScrollbar.onValueChanged.AddListener((float val) => _updateQueue.Enqueue(val));
       scrollbarStepSize = 1.0f / ((float) (rows - rowsVisible));
@@ -129,68 +122,57 @@ namespace VitrivrVR.Query.Display
       }
 
       var visibleWindow = columns * rowsVisible;
-      var rowShift = (int) Math.Round(val * (rows - rowsVisible));
+      var rowShift = val * (rows - rowsVisible);
       //Debug.Log(val + " " + rowShift);
 
-      var startIndex = columns * rowShift;
+      var startIndex = columns * (int) Math.Round(rowShift);
       var endIndex = startIndex + visibleWindow;
 
       //Debug.Log(startIndex + "-" + endIndex + ", " + startLoadIndex + "-" + endLoadIndex + " " + startUnloadIndex + "-" + endUnloadIndex);
 
-      //Destroy objects with index outside of visible window.
-      for (int i = 0; i < visibleWindow; i++)
-      {
-        if ((_resultIndex[i] < startIndex || endIndex <= _resultIndex[i]) && _resultIndex[i] != -1)
-        {
-          destroyResultObject(i);
-        }
-      }
+      //Deactivate objects with index outside of visible window.
+      //Debug.Log(val + ":" + startIndex + ":" + endIndex);
+      _metaTexts.ToList().GetRange(0, Math.Min(startIndex, _metaTexts.Length))
+        .Where(x => x != null).ToList().ForEach(x => x.SetActive(false));
 
-      var removedAmount = _resultIndex.Count(x => x == -1);
-      _resultIndex.RemoveAll(x => x == -1);
-      _mediaDisplays.RemoveAll(x => x == null);
-      _metaTexts.RemoveAll(x => x == null);
+      _metaTexts.ToList().GetRange(Math.Min(endIndex, _metaTexts.Length), Math.Max(0, _metaTexts.Length - endIndex))
+        .Where(x => x != null).ToList().ForEach(x => x.SetActive(false));
+
+      _mediaDisplays.ToList().GetRange(0, Math.Min(startIndex, _mediaDisplays.Length))
+        .Where(x => x != null).ToList().ForEach(x => x.gameObject.SetActive(false));
+
+      _mediaDisplays.ToList().GetRange(Math.Min(endIndex, _mediaDisplays.Length), Math.Max(0, _mediaDisplays.Length - endIndex))
+        .Where(x => x != null).ToList().ForEach(x => x.gameObject.SetActive(false));
+      
 
       //Readd Elements infront or after shown elements. This shifts the already loaded elements. 
-      if (val < prevScrollbarValue)
+      for(int i = startIndex; i < endIndex; i++)
       {
-
-        for (int i = 0; i < removedAmount; i++) {
-          _mediaDisplays.Insert(0, null);
-          _metaTexts.Insert(0, null);
-          _resultIndex.Insert(0, -1);
-        }
-        
-      } else if (val > prevScrollbarValue)
-      {
-        for (int i = 0; i < removedAmount; i++)
+        if(i < _mediaDisplays.Length && _mediaDisplays[i] != null)
         {
-          _mediaDisplays.Add(null);
-          _metaTexts.Add(null);
-          _resultIndex.Add(-1);
+          _mediaDisplays[i].gameObject.SetActive(true);
+          _metaTexts[i].SetActive(true);
+        } else
+        {
+          CreateResultObject(gridPanelTransform.gameObject, i);
         }
       }
 
       //reposition in 3d Space and add new Objects if needed.
-      for (int i = 0; i < visibleWindow; i++) 
+      for (int i = startIndex; i < endIndex; i++) 
       {
         if (_mediaDisplays[i] != null)
         {
-          var (newPos, newTextPos) = GetResultLocalPos(i);
-          //Debug.Log(newPos);
+          var (newPos, newTextPos) = GetResultLocalPos(i, rowShift);
+          //Debug.Log(rowShift+":"+newPos);
           var itemDisplayTransform = _mediaDisplays[i].transform;
           itemDisplayTransform.localPosition = newPos;
           var metaTextTransform = _metaTexts[i].transform;
           metaTextTransform.localPosition = newTextPos;
-        } else if(startIndex + i < _nResults) {
-          CreateResultObject(gridPanelTransform.gameObject, i, rowShift);
-        } else
-        {
-          _mediaDisplays[i] = null;
-          _metaTexts[i] = null;
-          _resultIndex[i] = -1;
         }
-      } 
+      }
+
+      //Debug.Log(_mediaDisplays.Count);
 
       //Debug.Log("Loaded Elements: " + _mediaDisplays.Count(s => s != null));
       gameObject.transform.position = new Vector3(0, 1.5f, 1.3f);
@@ -212,6 +194,8 @@ namespace VitrivrVR.Query.Display
         updateResultPosition(updatePos);
       }
 
+      //old move steps code
+      /*
       moveScrollbarValue += Time.deltaTime * moveScrollbar.ReadValue<Vector2>().x;
      
       if (0.5 <= Math.Abs(moveScrollbarValue))
@@ -228,17 +212,26 @@ namespace VitrivrVR.Query.Display
 
         moveScrollbarValue = 0;
       }
+      */
+      var scrollInput = moveScrollbar.ReadValue<Vector2>().x;
+      if (Math.Abs(scrollInput) > 0.30 && moveScrollbar.ReadValue<Vector2>().x < 0)
+      {
+        AdvancedGridScrollbar.value = Math.Max(0, AdvancedGridScrollbar.value + scrollbarStepSize * Time.deltaTime * moveScrollbar.ReadValue<Vector2>().x);
+      } else
+      {
+        AdvancedGridScrollbar.value = Math.Min(1, AdvancedGridScrollbar.value + scrollbarStepSize * Time.deltaTime * moveScrollbar.ReadValue<Vector2>().x);
+      }
+
+     
 
       //Debug.Log(moveScrollbar.ReadValue<Vector2>());
     }
 
-    private void CreateResultObject(GameObject panel, int index, int rowShift = 0)
+    private void CreateResultObject(GameObject panel, int index, float rowShift = 0)
     {
 
-      var resultIndex = columns * rowShift + index;
-
       // Determine position
-      var (position, positionText) = GetResultLocalPos(index);
+      var (position, positionText) = GetResultLocalPos(index, rowShift);
 
       var itemDisplay = Instantiate(mediaItemDisplay, Vector3.zero, Quaternion.identity, transform);
     
@@ -256,7 +249,7 @@ namespace VitrivrVR.Query.Display
 
       TextMeshProUGUI metaTextUGUI = metaText.GetComponentInChildren<TextMeshProUGUI>();
       //fetch and forget call of async function
-      createMetaDataToDisplay(metaTextUGUI, resultIndex, _results[resultIndex]);
+      createMetaDataToDisplay(metaTextUGUI, index, _results[index]);
       metaTextUGUI.fontSize = 30;
       metaTextUGUI.alignment = TextAlignmentOptions.Center;
 
@@ -265,9 +258,7 @@ namespace VitrivrVR.Query.Display
       // Add to media displays list
       _mediaDisplays[index] = itemDisplay;
 
-      _resultIndex[index] = resultIndex;
-
-      itemDisplay.Initialize(_results[resultIndex]);
+      itemDisplay.Initialize(_results[index]);
 
       itemDisplay.gameObject.SetActive(true);
     }
@@ -286,20 +277,8 @@ namespace VitrivrVR.Query.Display
       metaTextUGUI.text = text;
     }
 
-    //destroys unused object
-    private void destroyResultObject(int index)
-    { 
-
-      _mediaDisplays[index].gameObject.Destroy(true);
-      _mediaDisplays[index] = null;
-      _metaTexts[index].gameObject.Destroy(true);
-      _metaTexts[index] = null;
-      
-      _resultIndex[index] = -1;
-    }
-
     //Calculates position of mediaItem and metaText in grid based on index
-    private (Vector3 position, Vector3 positionText) GetResultLocalPos(int index)
+    private (Vector3 position, Vector3 positionText) GetResultLocalPos(int index, float rowShift)
     {
 
       var posX = -1250;
@@ -308,9 +287,9 @@ namespace VitrivrVR.Query.Display
       var column = index % columns;
       var row = index / columns;
      
-      var position = new Vector3(column * 500 + posX, -row  * 420 + posY, -0.06f);
+      var position = new Vector3(column * 500 + posX, -(row - rowShift) * 420 + posY, -0.06f);
 
-      var positionText = new Vector3(column * 500 + posX, -row * 420 - 200 + posY, -0.04f);
+      var positionText = new Vector3(column * 500 + posX, -(row - rowShift) * 420 - 200 + posY, -0.04f);
 
       return (position, positionText);
     }
