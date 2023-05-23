@@ -60,7 +60,7 @@ namespace VitrivrVR.Query.Display
       _nResults = _results.Count;
 
       //Debug: set different result size.
-      //_nResults = 48;
+      _nResults = 56;
 
       _mediaDisplays = new MediaItemDisplay[_nResults];
       _metaTexts = new GameObject[_nResults];
@@ -152,8 +152,9 @@ namespace VitrivrVR.Query.Display
         {
           _mediaDisplays[i].gameObject.SetActive(true);
           _metaTexts[i].SetActive(true);
-        } else
+        } else if(i < _nResults)
         {
+          //Debug.Log(i);
           CreateResultObject(gridPanelTransform.gameObject, i);
         }
       }
@@ -161,7 +162,7 @@ namespace VitrivrVR.Query.Display
       //reposition in 3d Space and add new Objects if needed.
       for (int i = startIndex; i < endIndex; i++) 
       {
-        if (_mediaDisplays[i] != null)
+        if (i < _nResults && _mediaDisplays[i] != null)
         {
           var (newPos, newTextPos) = GetResultLocalPos(i, rowShift);
           //Debug.Log(rowShift+":"+newPos);
@@ -214,12 +215,13 @@ namespace VitrivrVR.Query.Display
       }
       */
       var scrollInput = moveScrollbar.ReadValue<Vector2>().x;
-      if (Math.Abs(scrollInput) > 0.30 && moveScrollbar.ReadValue<Vector2>().x < 0)
+      //Math.Abs(scrollInput) > 0.30 && 
+      if (scrollInput < 0)
       {
-        AdvancedGridScrollbar.value = Math.Max(0, AdvancedGridScrollbar.value + scrollbarStepSize * Time.deltaTime * moveScrollbar.ReadValue<Vector2>().x);
+        AdvancedGridScrollbar.value = Math.Max(0, AdvancedGridScrollbar.value + scrollbarStepSize * Time.deltaTime * scrollInput);
       } else
       {
-        AdvancedGridScrollbar.value = Math.Min(1, AdvancedGridScrollbar.value + scrollbarStepSize * Time.deltaTime * moveScrollbar.ReadValue<Vector2>().x);
+        AdvancedGridScrollbar.value = Math.Min(1, AdvancedGridScrollbar.value + scrollbarStepSize * Time.deltaTime * scrollInput);
       }
 
      

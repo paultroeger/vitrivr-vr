@@ -41,11 +41,9 @@ namespace VitrivrVR.Query.Display
     private int rowsVisible = 4;
     private int rows;
 
-    private List<MediaItemDisplay> _mediaDisplays = new ();
-    private List<GameObject> _buttons = new ();
-    private List<Transform> _pillars = new();
-
-    private List<int> _resultIndex = new ();
+    private MediaItemDisplay[] _mediaDisplays;
+    private GameObject[] _buttons;
+    private Transform[] _pillars;
 
     private Transform controlPanelTransform = null;
     private Transform resultParentTransform = null;
@@ -73,6 +71,11 @@ namespace VitrivrVR.Query.Display
       //Debug: set different result size.
       //_nResults = 50;
 
+      _mediaDisplays = new MediaItemDisplay[_nResults];
+      _buttons = new GameObject[_nResults];
+      _pillars = new Transform[columns * rowsVisible];
+
+
       //set initial position
       gameObject.transform.position = new Vector3(0, 0.5f, 1.3f);
 
@@ -85,7 +88,7 @@ namespace VitrivrVR.Query.Display
 
       //Setup Scrollbar
       ReferencePointScrollbar = gameObject.GetComponentInChildren<Scrollbar>();
-      ReferencePointScrollbar.numberOfSteps = rows - rowsVisible + 1;
+      //ReferencePointScrollbar.numberOfSteps = rows - rowsVisible + 1;
       ReferencePointScrollbar.size = rowsVisible / rows;
       ReferencePointScrollbar.onValueChanged.AddListener((float val) => _updateQueue.Enqueue(val));
       scrollbarStepSize = 1.0f / ((float)(rows - rowsVisible));
@@ -100,10 +103,6 @@ namespace VitrivrVR.Query.Display
 
       for (int i = 0; i < columns * rowsVisible; i++)
       {
-        _mediaDisplays.Add(null);
-        _buttons.Add(null);
-        _resultIndex.Add(-1);
-
         Transform pillar = Instantiate(pillarPrefab, resultParentTransform).transform.Find("Canvas").transform.Find("ReferencePointPillar");
         
         var (position, delta) = GetPillarPosScale(i, 0);
@@ -111,16 +110,15 @@ namespace VitrivrVR.Query.Display
         var rectTransform = pillar.GetComponent<RectTransform>();
         rectTransform.sizeDelta = delta;
         rectTransform.localScale = new Vector3(1, 1, 1);
-        _pillars.Add(pillar);
+        _pillars[i] = pillar;
 
       }
 
       for (int i = 0; i < 16; i++)
       {
         CreateResultObject(i);
+        updateResultObjectPos(i);
       }
-
-      updateAllObjectPos();
     }
 
     private void Update()
@@ -137,6 +135,7 @@ namespace VitrivrVR.Query.Display
         updateResultPosition(updatePos);
       }
 
+      /*
       moveScrollbarValue += Time.deltaTime * moveScrollbar.ReadValue<Vector2>().x;
 
       if (0.5 <= Math.Abs(moveScrollbarValue))
@@ -153,6 +152,17 @@ namespace VitrivrVR.Query.Display
         }
 
         moveScrollbarValue = 0;
+      }
+      */
+
+      var scrollInput = moveScrollbar.ReadValue<Vector2>().x;
+      if (scrollInput < 0)
+      {
+        ReferencePointScrollbar.value = Math.Max(0, ReferencePointScrollbar.value + scrollbarStepSize * Time.deltaTime * scrollInput);
+      }
+      else
+      {
+        ReferencePointScrollbar.value = Math.Min(1, ReferencePointScrollbar.value + scrollbarStepSize * Time.deltaTime * scrollInput);
       }
 
     }
@@ -173,90 +183,77 @@ namespace VitrivrVR.Query.Display
     }
 
     //Update the Results Shown based on scrollbar value.
-    private void updateResultPosition(float val)
+    private void updateResultPosition(float val, bool forceUpdate = false)
     {
 
       //No position update needed if scroll val is the same as the prevScrollValue
-      if (val == prevScrollbarValue)
+      if (val == prevScrollbarValue && !forceUpdate)
       {
         return;
       }
 
       var visibleWindow = columns * rowsVisible;
-      var rowShift = (int)Math.Round(val * (rows - rowsVisible));
+      var rowShift = val * (rows - rowsVisible);
       //Debug.Log(val + " " + rowShift);
 
-      var startIndex = columns * rowShift;
+      var startIndex = columns * (int)Math.Round(rowShift);
       var endIndex = startIndex + visibleWindow;
 
       //Debug.Log(startIndex + "-" + endIndex + ", " + startLoadIndex + "-" + endLoadIndex + " " + startUnloadIndex + "-" + endUnloadIndex);
-
       //Destroy objects with index outside of visible window.
-      for (int i = 0; i < visibleWindow; i++)
-      {
-        if ((_resultIndex[i] < startIndex || endIndex <= _resultIndex[i]) && _resultIndex[i] != -1)
-        {
-          DestroyResultObject(i);
-        }
-      }
+      _buttons.ToList().GetRange(0, Math.Min(startIndex, _buttons.Length))
+        .Where(x => x != null).ToList().ForEach(x => x.SetActive(false));
 
-      var removedAmount = _resultIndex.Count(x => x == -1);
-      _resultIndex.RemoveAll(x => x == -1);
-      _mediaDisplays.RemoveAll(x => x == null);
-      _buttons.RemoveAll(x => x == null);
+      _buttons.ToList().GetRange(Math.Min(endIndex, _buttons.Length), Math.Max(0, _buttons.Length - endIndex))
+        .Where(x => x != null).ToList().ForEach(x => x.SetActive(false));
+
+      _mediaDisplays.ToList().GetRange(0, Math.Min(startIndex, _mediaDisplays.Length))
+        .Where(x => x != null).ToList().ForEach(x => x.gameObject.SetActive(false));
+
+      _mediaDisplays.ToList().GetRange(Math.Min(endIndex, _mediaDisplays.Length), Math.Max(0, _mediaDisplays.Length - endIndex))
+        .Where(x => x != null).ToList().ForEach(x => x.gameObject.SetActive(false));
 
       //Readd Elements infront or after shown elements. This shifts the already loaded elements. 
-      if (val < prevScrollbarValue)
+      for (int i = startIndex; i < endIndex; i++)
       {
-
-        for (int i = 0; i < removedAmount; i++)
+        if (i < _mediaDisplays.Length && _mediaDisplays[i] != null)
         {
-          _mediaDisplays.Insert(0, null);
-          _buttons.Insert(0, null);
-          _resultIndex.Insert(0, -1);
+          _mediaDisplays[i].gameObject.SetActive(true);
+          _buttons[i].SetActive(true);
         }
-
-      }
-      else if (val > prevScrollbarValue)
-      {
-        for (int i = 0; i < removedAmount; i++)
+        else if (i < _nResults)
         {
-          _mediaDisplays.Add(null);
-          _buttons.Add(null);
-          _resultIndex.Add(-1);
+          //Debug.Log(i);
+          CreateResultObject(i, rowShift);
         }
       }
 
       //reposition in 3d Space and add new Objects if needed.
-      for (int i = 0; i < visibleWindow; i++)
+      for (int i = startIndex; i < endIndex; i++)
       {
-        if (_mediaDisplays[i] != null)
+        if (i < _nResults && _mediaDisplays[i] != null)
         {
-          updateResultObjectPos(i);
-        }
-        else if (startIndex + i < _nResults)
-        {
-          CreateResultObject(i, rowShift);
-        }
-        else
-        {
-          _mediaDisplays[i] = null;
-          _buttons[i] = null;
-          _resultIndex[i] = -1;
+          /*
+          var (pos, buttonPos) = GetResultLocalPos(i, rowShift: rowShift);
+          //Debug.Log(rowShift+":"+newPos);
+          var itemDisplayTransform = _mediaDisplays[i].transform;
+          itemDisplayTransform.localPosition = pos;
+          var buttonTransform = _buttons[i].transform;
+          buttonTransform.localPosition = buttonPos;
+          */
+          updateResultObjectPos(i, rowShift);
         }
       }
 
-      updateAllObjectPos();
+      ;
 
       //Debug.Log("Loaded Elements: " + _mediaDisplays.Count(s => s != null));
       gameObject.transform.position = new Vector3(0, 0.5f, 1.3f);
       prevScrollbarValue = val;
     }
 
-    private void CreateResultObject(int index, int rowShift = 0)
+    private void CreateResultObject(int index, float rowShift = 0)
     {
-
-      var resultIndex = columns * rowShift + index;
 
       var (position, positionButton) = GetResultLocalPos(index);
 
@@ -281,67 +278,56 @@ namespace VitrivrVR.Query.Display
       button.transform.Rotate(new Vector3(-90, 0, 0));
 
       button.GetComponentInChildren<TextMeshProUGUI>().text = "+";
-      button.onClick.AddListener(() => selectItemAsReferencePoint(resultIndex));
+      button.onClick.AddListener(() => selectItemAsReferencePoint(index));
 
       // Add to media displays list
       _mediaDisplays[index] = itemDisplay;
       _buttons[index] = buttonGameObject;
 
-      _resultIndex[index] = resultIndex;
-
-      itemDisplay.Initialize(_results[resultIndex]);
+      itemDisplay.Initialize(_results[index]);
 
       itemDisplay.gameObject.SetActive(true);
     }
 
-    private void DestroyResultObject(int index)
+    private void DeactivateResultObject(int index)
     {
-      _mediaDisplays[index].gameObject.Destroy(true);
-      _mediaDisplays[index] = null;
-      _buttons[index].gameObject.Destroy(true);
-      _buttons[index] = null;
-
-      _resultIndex[index] = -1;
+      _mediaDisplays[index].gameObject.SetActive(false);
+      _buttons[index].gameObject.SetActive(false);
     }
 
-    private void updateResultObjectPos(int index)
+    private void updateResultObjectPos(int index, float rowShift = 0)
     {
 
       float score = 0;
+
+      var pillarIndex = index % (columns * rowsVisible);
 
       try {
 
         if (_queryResults.Count > 0)
         {
-          score = (float)_queryResults.Where(x => x.segment.Id == _results[_resultIndex[index]].segment.Id).ToArray()[0].score;
-          _pillars[index].GetComponent<Image>().color = new Color(0, 0, 255, 0.5f);
+          score = (float)_queryResults.Where(x => x.segment.Id == _results[index].segment.Id).ToArray()[0].score;
+          _pillars[pillarIndex].GetComponent<Image>().color = new Color(0, 0, 255, 0.5f);
         }
 
         
       } catch (Exception e)
       {
-        Debug.Log(e);
-        Debug.Log("Error no segment found for Id: " + _results[_resultIndex[index]].segment.Id + " with index: " + index);
-        _pillars[index].GetComponent<Image>().color = new Color(255, 0, 0, 0.5f);
+        //Debug.Log(e);
+        //Debug.Log("Error no segment found for Id: " + _results[index].segment.Id + " with index: " + index);
+        
+        _pillars[pillarIndex].GetComponent<Image>().color = new Color(255, 0, 0, 0.5f);
       }
 
-      var (position, positionButton) = GetResultLocalPos(index, score);
+      var (position, positionButton) = GetResultLocalPos(index, score, rowShift);
       _mediaDisplays[index].transform.localPosition = position;
       _buttons[index].transform.localPosition = positionButton;
 
-      var (pillarPos, delta) = GetPillarPosScale(index, score);
-      _pillars[index].transform.localPosition = pillarPos;
-      _pillars[index].GetComponent<RectTransform>().sizeDelta = delta;
-      _pillars[index].GetComponentInChildren<TextMeshProUGUI>().text = score.ToString("####0.##");
-      _pillars[index].GetComponentInChildren<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
-    }
-
-    private void updateAllObjectPos()
-    {
-      for(int i = 0; i < columns * rowsVisible; i++)
-      {
-        updateResultObjectPos(i);
-      }
+      var (pillarPos, delta) = GetPillarPosScale(index, score, rowShift);
+      _pillars[pillarIndex].transform.localPosition = pillarPos;
+      _pillars[pillarIndex].GetComponent<RectTransform>().sizeDelta = delta;
+      _pillars[pillarIndex].GetComponentInChildren<TextMeshProUGUI>().text = score.ToString("####0.##");
+      _pillars[pillarIndex].GetComponentInChildren<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
     }
 
     private void CreateReferencePointObject(GameObject panel, int resultIndex)
@@ -393,7 +379,7 @@ namespace VitrivrVR.Query.Display
     }
 
     //Calculates position of mediaItem and metaText in grid based on index
-    private (Vector3 position, Vector3 positionButton) GetResultLocalPos(int index, float score = 0.0f)
+    private (Vector3 position, Vector3 positionButton) GetResultLocalPos(int index, float score = 0.0f, float rowShift = 0)
     {
 
       var posX = -975;
@@ -402,14 +388,14 @@ namespace VitrivrVR.Query.Display
       var column = index % columns;
       var row = index / columns;
 
-      var position = new Vector3(column * 650 + posX, -row * 400 + posY, -200 - 600 * score - 20);
+      var position = new Vector3(column * 650 + posX, -(row - rowShift) * 400 + posY, -200 - 600 * score - 20);
 
       var positionButton = new Vector3(position.x + 125, position.y -30, position.z - 200);
 
       return (position, positionButton);
     }
 
-    private (Vector3 position, Vector2 delta) GetPillarPosScale(int index, float score = 0.0f)
+    private (Vector3 position, Vector2 delta) GetPillarPosScale(int index, float score = 0.0f, float rowShift = 0)
     {
       var posX = -975;
       var posY = 600;
@@ -417,7 +403,7 @@ namespace VitrivrVR.Query.Display
       var column = index % columns;
       var row = index / columns;
 
-      var position = new Vector3(column * 650 + posX, -row * 400 + posY, - 300 * score);
+      var position = new Vector3(column * 650 + posX, -(row - rowShift) * 400 + posY, - 300 * score);
 
       var delta = new Vector2(200, 600 * score);
 
@@ -437,7 +423,6 @@ namespace VitrivrVR.Query.Display
 
       CreateReferencePointObject(controlPanelTransform.gameObject, resultIndex);
 
-
       fetchSimilarityScores(resultIndex);
     }
 
@@ -445,7 +430,7 @@ namespace VitrivrVR.Query.Display
     {
       _queryResults = null;
       DestroyReferenceObject();
-      updateAllObjectPos();
+      updateResultPosition(ReferencePointScrollbar.value, true);
     }
 
     private async void fetchSimilarityScores(int resultIndex)
@@ -470,8 +455,7 @@ namespace VitrivrVR.Query.Display
 
       _queryResults = queryResponse.GetMeanFusionResults();
 
-      //Debug.Log(_queryResults.Count);
-      updateAllObjectPos();
+      updateResultPosition(ReferencePointScrollbar.value, true);
     }
 
   }
