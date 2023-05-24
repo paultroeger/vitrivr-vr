@@ -39,10 +39,10 @@ namespace VitrivrVR.Query.Display
 
     private int columns = 6;
     private int rows;
-    private int rowsVisible = 4;
+    private int rowsVisible = 5;
     private float prevScrollbarValue = 0.0f;
 
-    private float moveScrollbarValue = 0.0f;
+    //private float moveScrollbarValue = 0.0f;
     private float scrollbarStepSize = 0.0f;
 
     private Scrollbar AdvancedGridScrollbar;
@@ -60,12 +60,13 @@ namespace VitrivrVR.Query.Display
       _nResults = _results.Count;
 
       //Debug: set different result size.
-      _nResults = 56;
+      //_nResults = 56;
 
       _mediaDisplays = new MediaItemDisplay[_nResults];
       _metaTexts = new GameObject[_nResults];
 
-      rows = (int)Math.Ceiling((double)_nResults / (double)columns);
+      //+1 because of transperency
+      rows = (int)Math.Ceiling((double)_nResults / (double)columns) + 1;
 
       //Debug.Log("Rows: " + rows);
 
@@ -164,12 +165,25 @@ namespace VitrivrVR.Query.Display
       {
         if (i < _nResults && _mediaDisplays[i] != null)
         {
-          var (newPos, newTextPos) = GetResultLocalPos(i, rowShift);
+          var (newPos, newTextPos, alpha) = GetResultLocalPos(i, rowShift);
           //Debug.Log(rowShift+":"+newPos);
           var itemDisplayTransform = _mediaDisplays[i].transform;
           itemDisplayTransform.localPosition = newPos;
+
+          //set transperency
+          var rawImage = itemDisplayTransform.Find("ImageFrame").Find("RawImage").GetComponent<RawImage>();
+          rawImage.color = new Color(rawImage.color.r, rawImage.color.g, rawImage.color.b, alpha);
+          var scoreFrame = itemDisplayTransform.Find("ImageFrame").Find("ScoreFrame").GetComponent<RawImage>();
+          scoreFrame.color = new Color(scoreFrame.color.r, scoreFrame.color.g, scoreFrame.color.b, alpha);
+          
+
           var metaTextTransform = _metaTexts[i].transform;
           metaTextTransform.localPosition = newTextPos;
+          TextMeshProUGUI metaTextUGUI = metaTextTransform.GetComponentInChildren<TextMeshProUGUI>();
+          metaTextUGUI.color = new Color(metaTextUGUI.color.r, metaTextUGUI.color.g, metaTextUGUI.color.b, alpha);
+
+          
+
         }
       }
 
@@ -233,7 +247,7 @@ namespace VitrivrVR.Query.Display
     {
 
       // Determine position
-      var (position, positionText) = GetResultLocalPos(index, rowShift);
+      var (position, positionText, alpha) = GetResultLocalPos(index, rowShift);
 
       var itemDisplay = Instantiate(mediaItemDisplay, Vector3.zero, Quaternion.identity, transform);
     
@@ -254,6 +268,7 @@ namespace VitrivrVR.Query.Display
       createMetaDataToDisplay(metaTextUGUI, index, _results[index]);
       metaTextUGUI.fontSize = 30;
       metaTextUGUI.alignment = TextAlignmentOptions.Center;
+      metaTextUGUI.color = new Color(metaTextUGUI.color.r, metaTextUGUI.color.g, metaTextUGUI.color.b, alpha);
 
       _metaTexts[index] = metaText;
 
@@ -263,6 +278,13 @@ namespace VitrivrVR.Query.Display
       itemDisplay.Initialize(_results[index]);
 
       itemDisplay.gameObject.SetActive(true);
+
+      //set transperency
+      var rawImage = transform2.Find("ImageFrame").Find("RawImage").GetComponent<RawImage>();
+      rawImage.color = new Color(rawImage.color.r, rawImage.color.g, rawImage.color.b, alpha);
+      var scoreFrame = transform2.Find("ImageFrame").Find("ScoreFrame").GetComponent<RawImage>();
+      scoreFrame.color = new Color(scoreFrame.color.r, scoreFrame.color.g, scoreFrame.color.b, alpha);
+
     }
 
     //Fetches and sets MetaData Text. Is async since we have to await certain values. 
@@ -280,11 +302,11 @@ namespace VitrivrVR.Query.Display
     }
 
     //Calculates position of mediaItem and metaText in grid based on index
-    private (Vector3 position, Vector3 positionText) GetResultLocalPos(int index, float rowShift)
+    private (Vector3 position, Vector3 positionText, float alpha) GetResultLocalPos(int index, float rowShift)
     {
 
       var posX = -1250;
-      var posY = 600;
+      var posY = 700;
 
       var column = index % columns;
       var row = index / columns;
@@ -293,7 +315,18 @@ namespace VitrivrVR.Query.Display
 
       var positionText = new Vector3(column * 500 + posX, -(row - rowShift) * 420 - 200 + posY, -0.04f);
 
-      return (position, positionText);
+      float alpha = 1;
+      var lowerBoundry = -(rowsVisible - 1) * 420 + posY + 200;
+
+      if (position.y > posY)
+      {
+        alpha = 1 - (position.y - posY) / 200;
+      } else if (position.y < lowerBoundry)
+      {
+        alpha = Math.Max(0, 1 - (-position.y + lowerBoundry) / 200);
+      }
+
+      return (position, positionText, alpha);
     }
   }
 }

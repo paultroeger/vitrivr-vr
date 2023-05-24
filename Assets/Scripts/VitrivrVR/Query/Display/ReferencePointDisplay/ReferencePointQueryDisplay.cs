@@ -38,7 +38,7 @@ namespace VitrivrVR.Query.Display
     private GameObject referencePointButton = null;
 
     private int columns = 4;
-    private int rowsVisible = 4;
+    private int rowsVisible = 5;
     private int rows;
 
     private MediaItemDisplay[] _mediaDisplays;
@@ -52,7 +52,7 @@ namespace VitrivrVR.Query.Display
     private float scrollbarStepSize;
     private float prevScrollbarValue;
     private Queue<float> _updateQueue = new ();
-    private float moveScrollbarValue = 0.0f;
+    //private float moveScrollbarValue = 0.0f;
 
     public InputAction moveScrollbar;
 
@@ -111,6 +111,7 @@ namespace VitrivrVR.Query.Display
         rectTransform.sizeDelta = delta;
         rectTransform.localScale = new Vector3(1, 1, 1);
         _pillars[i] = pillar;
+        pillar.GetComponentInChildren<TextMeshProUGUI>().text = "";
 
       }
 
@@ -255,7 +256,7 @@ namespace VitrivrVR.Query.Display
     private void CreateResultObject(int index, float rowShift = 0)
     {
 
-      var (position, positionButton) = GetResultLocalPos(index);
+      var (position, positionButton, alpha) = GetResultLocalPos(index);
 
       var itemDisplay = Instantiate(mediaItemDisplay, Vector3.zero, Quaternion.identity, resultParentTransform);
 
@@ -287,6 +288,8 @@ namespace VitrivrVR.Query.Display
       itemDisplay.Initialize(_results[index]);
 
       itemDisplay.gameObject.SetActive(true);
+
+      SetAlpha(index, alpha);
     }
 
     private void DeactivateResultObject(int index)
@@ -311,7 +314,7 @@ namespace VitrivrVR.Query.Display
         }
 
         
-      } catch (Exception e)
+      } catch //(Exception e)
       {
         //Debug.Log(e);
         //Debug.Log("Error no segment found for Id: " + _results[index].segment.Id + " with index: " + index);
@@ -319,7 +322,7 @@ namespace VitrivrVR.Query.Display
         _pillars[pillarIndex].GetComponent<Image>().color = new Color(255, 0, 0, 0.5f);
       }
 
-      var (position, positionButton) = GetResultLocalPos(index, score, rowShift);
+      var (position, positionButton, alpha) = GetResultLocalPos(index, score, rowShift);
       _mediaDisplays[index].transform.localPosition = position;
       _buttons[index].transform.localPosition = positionButton;
 
@@ -328,7 +331,12 @@ namespace VitrivrVR.Query.Display
       _pillars[pillarIndex].GetComponent<RectTransform>().sizeDelta = delta;
       _pillars[pillarIndex].GetComponentInChildren<TextMeshProUGUI>().text = score.ToString("####0.##");
       _pillars[pillarIndex].GetComponentInChildren<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
+
+      SetAlpha(index, alpha);
+
     }
+
+  
 
     private void CreateReferencePointObject(GameObject panel, int resultIndex)
     {
@@ -379,7 +387,7 @@ namespace VitrivrVR.Query.Display
     }
 
     //Calculates position of mediaItem and metaText in grid based on index
-    private (Vector3 position, Vector3 positionButton) GetResultLocalPos(int index, float score = 0.0f, float rowShift = 0)
+    private (Vector3 position, Vector3 positionButton, float alpha) GetResultLocalPos(int index, float score = 0.0f, float rowShift = 0)
     {
 
       var posX = -975;
@@ -392,7 +400,19 @@ namespace VitrivrVR.Query.Display
 
       var positionButton = new Vector3(position.x + 125, position.y -30, position.z - 200);
 
-      return (position, positionButton);
+      float alpha = 1;
+      var lowerBoundry = -(rowsVisible - 1) * 400 + posY + 200;
+
+      if (position.y > posY)
+      {
+        alpha = 1 - (position.y - posY) / 200;
+      }
+      else if (position.y < lowerBoundry)
+      {
+        alpha = Math.Max(0, 1 - (-position.y + lowerBoundry) / 200);
+      }
+
+      return (position, positionButton, alpha);
     }
 
     private (Vector3 position, Vector2 delta) GetPillarPosScale(int index, float score = 0.0f, float rowShift = 0)
@@ -408,6 +428,28 @@ namespace VitrivrVR.Query.Display
       var delta = new Vector2(200, 600 * score);
 
       return (position, delta);
+    }
+
+    private void SetAlpha(int index, float alpha)
+    {
+      var pillarIndex = index % (columns * rowsVisible);
+      //set transperency
+      var rawImage = _mediaDisplays[index].transform.Find("ImageFrame").Find("RawImage").GetComponent<RawImage>();
+      rawImage.color = new Color(rawImage.color.r, rawImage.color.g, rawImage.color.b, alpha);
+      var scoreFrame = _mediaDisplays[index].transform.Find("ImageFrame").Find("ScoreFrame").GetComponent<RawImage>();
+      scoreFrame.color = new Color(scoreFrame.color.r, scoreFrame.color.g, scoreFrame.color.b, alpha);
+
+      var buttonImage = _buttons[index].transform.Find("Canvas").Find("Button").GetComponent<Image>();
+      buttonImage.color = new Color(buttonImage.color.r, buttonImage.color.g, buttonImage.color.b, alpha);
+
+      var buttonText = _buttons[index].transform.Find("Canvas").Find("Button").GetComponentInChildren<TextMeshProUGUI>();
+      buttonText.color = new Color(buttonText.color.r, buttonText.color.g, buttonText.color.b, alpha);
+
+      var pillarImage = _pillars[pillarIndex].GetComponent<Image>();
+      pillarImage.color = new Color(pillarImage.color.r, pillarImage.color.g, pillarImage.color.b, alpha);
+
+      var pillarText = _pillars[pillarIndex].GetComponentInChildren<TextMeshProUGUI>();
+      pillarText.color = new Color(pillarText.color.r, pillarText.color.g, pillarText.color.b, alpha);
     }
 
     private void selectItemAsReferencePoint(int resultIndex)
