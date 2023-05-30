@@ -159,11 +159,11 @@ namespace VitrivrVR.Query.Display
       var scrollInput = moveScrollbar.ReadValue<Vector2>().x;
       if (scrollInput < 0)
       {
-        ReferencePointScrollbar.value = Math.Max(0, ReferencePointScrollbar.value + scrollbarStepSize * Time.deltaTime * scrollInput);
+        ReferencePointScrollbar.value = Math.Max(0, ReferencePointScrollbar.value + 6 * scrollbarStepSize * Time.deltaTime * scrollInput);
       }
       else
       {
-        ReferencePointScrollbar.value = Math.Min(1, ReferencePointScrollbar.value + scrollbarStepSize * Time.deltaTime * scrollInput);
+        ReferencePointScrollbar.value = Math.Min(1, ReferencePointScrollbar.value + 6 * scrollbarStepSize * Time.deltaTime * scrollInput);
       }
 
     }

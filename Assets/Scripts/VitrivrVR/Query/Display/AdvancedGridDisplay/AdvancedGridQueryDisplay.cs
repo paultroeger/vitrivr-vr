@@ -232,10 +232,10 @@ namespace VitrivrVR.Query.Display
       //Math.Abs(scrollInput) > 0.30 && 
       if (scrollInput < 0)
       {
-        AdvancedGridScrollbar.value = Math.Max(0, AdvancedGridScrollbar.value + scrollbarStepSize * Time.deltaTime * scrollInput);
+        AdvancedGridScrollbar.value = Math.Max(0, AdvancedGridScrollbar.value + 6 * scrollbarStepSize * Time.deltaTime * scrollInput);
       } else
       {
-        AdvancedGridScrollbar.value = Math.Min(1, AdvancedGridScrollbar.value + scrollbarStepSize * Time.deltaTime * scrollInput);
+        AdvancedGridScrollbar.value = Math.Min(1, AdvancedGridScrollbar.value + 6 * scrollbarStepSize * Time.deltaTime * scrollInput);
       }
 
      
