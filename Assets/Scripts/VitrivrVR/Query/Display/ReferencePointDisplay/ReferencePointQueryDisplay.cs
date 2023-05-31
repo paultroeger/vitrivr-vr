@@ -69,7 +69,7 @@ namespace VitrivrVR.Query.Display
       _nResults = _results.Count;
 
       //Debug: set different result size.
-      //_nResults = 50;
+      _nResults = 200;
 
       _mediaDisplays = new MediaItemDisplay[_nResults];
       _buttons = new GameObject[_nResults];

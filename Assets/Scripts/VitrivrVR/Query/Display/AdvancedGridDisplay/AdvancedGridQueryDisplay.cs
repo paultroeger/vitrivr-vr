@@ -60,7 +60,7 @@ namespace VitrivrVR.Query.Display
       _nResults = _results.Count;
 
       //Debug: set different result size.
-      //_nResults = 56;
+      _nResults = 200;
 
       _mediaDisplays = new MediaItemDisplay[_nResults];
       _metaTexts = new GameObject[_nResults];
@@ -122,6 +122,8 @@ namespace VitrivrVR.Query.Display
         return;
       }
 
+      //var pos = gameObject.transform.position;
+
       var visibleWindow = columns * rowsVisible;
       var rowShift = val * (rows - rowsVisible);
       //Debug.Log(val + " " + rowShift);
@@ -169,6 +171,7 @@ namespace VitrivrVR.Query.Display
           //Debug.Log(rowShift+":"+newPos);
           var itemDisplayTransform = _mediaDisplays[i].transform;
           itemDisplayTransform.localPosition = newPos;
+          itemDisplayTransform.localRotation = new Quaternion(0, 0, 0, 0);
 
           //set transperency
           var rawImage = itemDisplayTransform.Find("ImageFrame").Find("RawImage").GetComponent<RawImage>();
@@ -245,7 +248,6 @@ namespace VitrivrVR.Query.Display
 
     private void CreateResultObject(GameObject panel, int index, float rowShift = 0)
     {
-
       // Determine position
       var (position, positionText, alpha) = GetResultLocalPos(index, rowShift);
 
@@ -328,5 +330,6 @@ namespace VitrivrVR.Query.Display
 
       return (position, positionText, alpha);
     }
+
   }
 }
