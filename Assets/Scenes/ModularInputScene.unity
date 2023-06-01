@@ -2586,6 +2586,16 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -5
       objectReference: {fileID: 0}
+    - target: {fileID: 4313398043121315595, guid: a064c784b84570846be74dc3380b0743,
+        type: 3}
+      propertyPath: m_Options.m_Options.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4313398043121315595, guid: a064c784b84570846be74dc3380b0743,
+        type: 3}
+      propertyPath: m_Options.m_Options.Array.data[4].m_Text
+      value: Study Display
+      objectReference: {fileID: 0}
     - target: {fileID: 4861571820509022753, guid: a064c784b84570846be74dc3380b0743,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -2619,13 +2629,19 @@ PrefabInstance:
     - target: {fileID: 5350470879762543665, guid: a064c784b84570846be74dc3380b0743,
         type: 3}
       propertyPath: queryDisplayPrefabs.Array.size
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5350470879762543665, guid: a064c784b84570846be74dc3380b0743,
         type: 3}
       propertyPath: queryDisplayPrefabs.Array.data[3]
       value: 
       objectReference: {fileID: 4454271214942091010, guid: dc08285580ede894883b4994adaf8246,
+        type: 3}
+    - target: {fileID: 5350470879762543665, guid: a064c784b84570846be74dc3380b0743,
+        type: 3}
+      propertyPath: queryDisplayPrefabs.Array.data[4]
+      value: 
+      objectReference: {fileID: -5129257360106097246, guid: 53069ffcd26a01b46af2c69c3fb62984,
         type: 3}
     - target: {fileID: 5350470879762543667, guid: a064c784b84570846be74dc3380b0743,
         type: 3}

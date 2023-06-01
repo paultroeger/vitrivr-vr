@@ -99,7 +99,6 @@ namespace VitrivrVR.Query.Display
           CreateResultObject(gridPanelTransform.gameObject, i);
         }
       }
-
     }
 
     private void OnEnable()
