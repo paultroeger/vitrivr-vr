@@ -1,23 +1,15 @@
-using Org.Vitrivr.CineastApi.Model;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Vitrivr.UnityInterface.CineastApi.Model.Data;
-using VitrivrVR.Config;
-using VitrivrVR.Logging;
 using VitrivrVR.Media.Display;
 using VitrivrVR.Notification;
-using static VitrivrVR.Logging.Interaction;
 
 namespace VitrivrVR.Query.Display
 {
   /// <summary>
-  /// Displays queries in an advanced grid.
+  /// Displays one image per query based on segment id. Used in user study.
   /// </summary>
   public class StudyDisplay : QueryDisplay
   {
@@ -61,6 +53,8 @@ namespace VitrivrVR.Query.Display
       //Debug.Log(_results[66].segment.Id);
       //Debug.Log(_results[96].segment.Id);
 
+      //filter results by segment ids
+      //Example:
       var list = _results.Where(x => x.segment.Id == "v_10441_60" || x.segment.Id == "v_07249_60" || x.segment.Id == "v_00127_72" || x.segment.Id == "v_01942_38").ToList();
 
       if (list.Count > 0)

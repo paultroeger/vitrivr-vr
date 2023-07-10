@@ -1,18 +1,14 @@
-using Org.Vitrivr.CineastApi.Model; 
+using Org.Vitrivr.CineastApi.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Vitrivr.UnityInterface.CineastApi.Model.Data;
-using VitrivrVR.Config;
-using VitrivrVR.Logging;
 using VitrivrVR.Media.Display;
 using VitrivrVR.Notification;
-using static VitrivrVR.Logging.Interaction;
 
 namespace VitrivrVR.Query.Display
 {
@@ -69,7 +65,7 @@ namespace VitrivrVR.Query.Display
       _nResults = _results.Count;
 
       //Debug: set different result size.
-      _nResults = 200;
+      //_nResults = 200;
 
       _mediaDisplays = new MediaItemDisplay[_nResults];
       _buttons = new GameObject[_nResults];
@@ -135,26 +131,6 @@ namespace VitrivrVR.Query.Display
 
         updateResultPosition(updatePos);
       }
-
-      /*
-      moveScrollbarValue += Time.deltaTime * moveScrollbar.ReadValue<Vector2>().x;
-
-      if (0.5 <= Math.Abs(moveScrollbarValue))
-      {
-        var value = ReferencePointScrollbar.value;
-
-        if (moveScrollbarValue < 0)
-        {
-          ReferencePointScrollbar.value = Math.Max(0, (value - scrollbarStepSize));
-        }
-        else
-        {
-          ReferencePointScrollbar.value = Math.Min(1, (value + scrollbarStepSize));
-        }
-
-        moveScrollbarValue = 0;
-      }
-      */
 
       var scrollInput = moveScrollbar.ReadValue<Vector2>().x;
       if (scrollInput < 0)
@@ -234,14 +210,6 @@ namespace VitrivrVR.Query.Display
       {
         if (i < _nResults && _mediaDisplays[i] != null)
         {
-          /*
-          var (pos, buttonPos) = GetResultLocalPos(i, rowShift: rowShift);
-          //Debug.Log(rowShift+":"+newPos);
-          var itemDisplayTransform = _mediaDisplays[i].transform;
-          itemDisplayTransform.localPosition = pos;
-          var buttonTransform = _buttons[i].transform;
-          buttonTransform.localPosition = buttonPos;
-          */
           updateResultObjectPos(i, rowShift);
         }
       }

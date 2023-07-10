@@ -1,18 +1,13 @@
-using Org.Vitrivr.CineastApi.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Vitrivr.UnityInterface.CineastApi.Model.Data;
-using VitrivrVR.Config;
-using VitrivrVR.Logging;
 using VitrivrVR.Media.Display;
 using VitrivrVR.Notification;
-using static VitrivrVR.Logging.Interaction;
 
 namespace VitrivrVR.Query.Display
 {
@@ -60,7 +55,7 @@ namespace VitrivrVR.Query.Display
       _nResults = _results.Count;
 
       //Debug: set different result size.
-      _nResults = 200;
+      //_nResults = 200;
 
       _mediaDisplays = new MediaItemDisplay[_nResults];
       _metaTexts = new GameObject[_nResults];

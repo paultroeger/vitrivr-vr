@@ -87,7 +87,8 @@ namespace VitrivrVR.Query.Display
 
       _nResults = _results.Count;
 
-      _nResults = 200;
+      //Debug: set a result limit.
+      //_nResults = 200;
 
       foreach (var segment in _results.Take(_maxColumns * 3 / 4 * rows))
       {
